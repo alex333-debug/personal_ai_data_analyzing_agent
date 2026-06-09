@@ -30,7 +30,7 @@ def read_any_document(file_path:str)->str:
         if ext == '.txt':
             with open(file_path, 'r', encoding='utf-8') as f:
                 return f"【TXT文件内容】:\n{f.read()}"
-elif ext == '.csv':
+        elif ext == '.csv':
             try:
                 # 方案 1：最标准的读取
                 df = pd.read_csv(file_path, encoding='utf-8')
