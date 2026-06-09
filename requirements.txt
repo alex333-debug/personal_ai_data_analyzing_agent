@@ -4,6 +4,6 @@ pandas
 yfinance
 akshare
 openai
-duckduckgo-search
+ddgs
 markdownify
 beautifulsoup4
