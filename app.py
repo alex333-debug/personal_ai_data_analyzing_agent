@@ -30,13 +30,25 @@ def read_any_document(file_path:str)->str:
         if ext == '.txt':
             with open(file_path, 'r', encoding='utf-8') as f:
                 return f"【TXT文件内容】:\n{f.read()}"
-        elif ext == '.csv':
+elif ext == '.csv':
             try:
-                # 第一套方案：尝试用通用的 UTF-8 读取
+                # 方案 1：最标准的读取
                 df = pd.read_csv(file_path, encoding='utf-8')
+            except pd.errors.ParserError:
+                # 🌟 修复格式错乱大坑：如果行列对不上，自动跳过坏行，或自动猜测分隔符
+                try:
+                    # sep=None 自动猜测分隔符，on_bad_lines='skip' 会强行跳过那些列数不对的坏数据
+                    df = pd.read_csv(file_path, encoding='utf-8', sep=None, engine='python', on_bad_lines='skip')
+                except Exception as e:
+                    # 如果还是不行，尝试跳过前3行废话 (skiprows=3)
+                    return f"CSV 格式极其混乱，尝试跳过错乱行失败。建议人工检查文件前 5 行。报错: {str(e)}"
             except UnicodeDecodeError:
-                # 第二套方案：如果报错，说明是 Windows Excel 生成的表格，改用 GBK 读取
-                df = pd.read_csv(file_path, encoding='gbk')
+                # 方案 2：GBK 编码降级 (处理中文 Windows 表格)
+                try:
+                    df = pd.read_csv(file_path, encoding='gbk')
+                except pd.errors.ParserError:
+                     df = pd.read_csv(file_path, encoding='gbk', sep=None, engine='python', on_bad_lines='skip')
+                     
             summary = (
                 f"【CSV 结构】包含 {df.shape[0]} 行, {df.shape[1]} 列。\n"
                 f"【列名】: {list(df.columns)}\n"
