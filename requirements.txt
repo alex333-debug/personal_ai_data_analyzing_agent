@@ -4,3 +4,6 @@ pandas
 yfinance
 akshare
 openai
+duckduckgo-search
+markdownify
+beautifulsoup4
