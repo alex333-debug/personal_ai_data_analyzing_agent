@@ -3,3 +3,4 @@ smolagents
 pandas
 yfinance
 akshare
+openai
