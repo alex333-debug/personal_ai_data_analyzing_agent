@@ -69,12 +69,25 @@ def read_any_document(file_path: str) -> str:
     
 @tool
 def get_global_stock_trend(ticker: str, days: int = 7) -> str:
-    """这是一个全球股票查询工具... (此处保持你原本的双引擎股票代码不变)"""
+    """
+    这是一个终极股票查询工具，支持查询全球股票（包括美股、港股和中国 A 股）最近几天的收盘价走势。
+    它内置了双数据源，会自动匹配最合适的数据源。
+    
+    Args:
+        ticker: 股票代码。美股直接传代码（如 'AAPL'）；
+                如果是中国 A 股，可以直接传 6 位纯数字代码（如 '600519'）或者带后缀的代码（如 '600519.SS'）。
+        days: 需要查询的最近天数（默认 7 天）。
+    """
+    # ---------------------------------------------------------
+    # 策略 1：清理股票代码，为 A 股查询做准备
+    # ---------------------------------------------------------
     clean_a_share_code = ""
     if len(ticker) == 6 and ticker.isdigit():
         clean_a_share_code = ticker
     elif ticker.endswith('.SS') or ticker.endswith('.SZ'):
         clean_a_share_code = ticker.split('.')[0]
+
+    # ... 下面的 try/except 逻辑保持不变 ...
 
     try:
         stock = yf.Ticker(ticker)
