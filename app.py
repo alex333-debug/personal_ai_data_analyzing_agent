@@ -32,27 +32,32 @@ def read_any_document(file_path:str)->str:
                 return f"【TXT文件内容】:\n{f.read()}"
         elif ext == '.csv':
             try:
-                # 方案 1：最标准的读取
+                # 尝试用通用 UTF-8 读取
                 df = pd.read_csv(file_path, encoding='utf-8')
-            except pd.errors.ParserError:
-                # 🌟 修复格式错乱大坑：如果行列对不上，自动跳过坏行，或自动猜测分隔符
-                try:
-                    # sep=None 自动猜测分隔符，on_bad_lines='skip' 会强行跳过那些列数不对的坏数据
-                    df = pd.read_csv(file_path, encoding='utf-8', sep=None, engine='python', on_bad_lines='skip')
-                except Exception as e:
-                    # 如果还是不行，尝试跳过前3行废话 (skiprows=3)
-                    return f"CSV 格式极其混乱，尝试跳过错乱行失败。建议人工检查文件前 5 行。报错: {str(e)}"
             except UnicodeDecodeError:
-                # 方案 2：GBK 编码降级 (处理中文 Windows 表格)
-                try:
-                    df = pd.read_csv(file_path, encoding='gbk')
-                except pd.errors.ParserError:
-                     df = pd.read_csv(file_path, encoding='gbk', sep=None, engine='python', on_bad_lines='skip')
-                     
+                # 报错则改用 GBK 读取 (应对国内 Excel 导出的 CSV)
+                df = pd.read_csv(file_path, encoding='gbk')
+            except Exception:
+                # 终极容错：跳过错乱行读取
+                df = pd.read_csv(file_path, encoding='gbk', sep=None, engine='python', on_bad_lines='skip')
+                
+            # ==========================================
+            # 🌟 新增：Python 底层全自动数据清洗装甲
+            # ==========================================
+            # 动作 1：清洗整行全空的“视觉分割线”
+            df = df.dropna(how='all') 
+            
+            # 动作 2：终极大招 —— 向下自动填充！
+            # 只要遇到 NaN（空单元格），就会自动抄它正上方那个单元格的值。
+            # 完美解决 Excel “合并单元格”拆分后导致的大面积空白问题。
+            df = df.ffill()
+            # ==========================================
+            
+            # 限制返回给大模型的行数，防止把大模型“撑爆”
             summary = (
                 f"【CSV 结构】包含 {df.shape[0]} 行, {df.shape[1]} 列。\n"
                 f"【列名】: {list(df.columns)}\n"
-                f"【前 20 行数据预览】:\n{df.head(20).to_markdown()}"
+                f"【前 20 行数据预览(已执行底层去空与填充清洗)】:\n{df.head(20).to_markdown()}"
             )
             return summary
         else:
