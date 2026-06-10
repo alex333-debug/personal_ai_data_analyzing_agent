@@ -149,21 +149,30 @@ if "messages" not in st.session_state:
     
 with st.sidebar:
     # ==========================================
-    # 新增模块：云端文件上传区
+    # 云端文件上传区
     # ==========================================
     st.subheader("📂 私有数据上传区")
     st.markdown("把你的本地文件传给云端 Agent：")
     
-    # 召唤 Streamlit 的上传组件
     uploaded_file = st.file_uploader("支持 TXT 和 CSV", type=["txt", "csv"])
     
     if uploaded_file is not None:
-        # 🌟 核心魔法：把用户浏览器传过来的文件，真实地写进云端服务器的硬盘里
+        # 1. 自动保存文件到云端服务器
         with open(uploaded_file.name, "wb") as f:
             f.write(uploaded_file.getbuffer())
-        st.success(f"✅ 文件 `{uploaded_file.name}` 已传至云端！现在可以命令 Agent 分析它了。")
+        st.success(f"✅ 文件 `{uploaded_file.name}` 已就绪！")
         
+        # 🌟 2. 新增：极其丝滑的一键分析按钮！
+        if st.button(f"📊 一键探索表结构与数据"):
+            # 自动帮用户构造极其专业的 Prompt，直接喂给 Agent
+            file_prompt = f"请调用文档读取工具，读取刚才上传的 `{uploaded_file.name}`。请用专业的口吻告诉我：\n1. 这份表总共有多少行、多少列？\n2. 包含了哪些关键的业务字段？\n3. 请根据前几行数据，推测一下这大概是一份什么业务的数据表？"
+            
+            # 存入刚刚打通的快捷指令抽屉
+            st.session_state.quick_action = file_prompt
+            
     st.divider() # 画一条华丽的分割线
+    
+    # ... 下面保留你原有的股票快捷指令区代码 ...
     
     # ==========================================
     # 原有的：快捷指令区
