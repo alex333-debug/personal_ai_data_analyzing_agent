@@ -52,7 +52,6 @@ def read_any_document(file_path: str) -> str:
             # 自动清洗装甲：无论 CSV 还是 Excel，上传即刻清洗
             # ==========================================
             df = df.dropna(how='all') # 删掉全空行
-            df = df.ffill()           # 🌟 核心魔法：自动向下填充合并单元格的空白！
             # ==========================================
             
             summary = (
@@ -142,8 +141,12 @@ with st.sidebar:
             f.write(uploaded_file.getbuffer())
         st.success(f"✅ 文件 `{uploaded_file.name}` 已就绪！")
         
-        if st.button(f"📊 一键探索表结构与数据"):
-            file_prompt = f"请调用文档读取工具，读取刚才上传的 `{uploaded_file.name}`。请用专业的口吻告诉我：\n1. 这份表总共有多少行、多少列？\n2. 包含了哪些关键的业务字段？\n3. 请根据前几行数据，推测一下这大概是一份什么业务的数据表？"
+       if st.button(f"📊 一键探索表结构与数据"):
+            file_prompt = f"""请调用文档读取工具，读取刚才上传的 `{uploaded_file.name}`。
+请作为资深数据分析师执行以下探查：
+1. 【概览】这份表总共有多少行、多少列？包含哪些关键字段？
+2. 【缺失值诊断】请观察数据中的空值（NaN）。如果是类似“物流单号”的合理空缺（如已退款订单），请保持原样；如果发现由于“Excel合并单元格”导致的某几列出现连续规律性空缺（如序号、产品类别），请你编写 Python 代码专门对那几列使用 `.ffill()` 进行向下填充清洗。
+3. 【业务推测】根据前几行数据，推测这是一份什么业务的数据表？"""
             st.session_state.quick_action = file_prompt
             
     st.divider()
